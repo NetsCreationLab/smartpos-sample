@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">SmartPOS Sample</string>
+    <string name="title_sales">Sales</string>
+    <string name="title_refunds">Refunds</string>
+    <string name="title_others">Others</string>
+    <string name="amount">Amount</string>
+    <string name="vat">VAT</string>
+    <string name="pay_with_nets_client">Pay with Nets Client</string>
+    <string name="refund_with_legacy_client">Refund with Legacy Client</string>
+    <string name="refund_with_nets_client">Refund with Nets Client</string>
+    <string name="pay_with_legacy_client">Pay with Legacy Client</string>
+    <string name="reverse_with_nets_client">Reverse with Nets Client</string>
+    <string name="reverse_with_legacy_client">Reverse with Legacy Client</string>
+    <string name="reconciliation_with_nets_client">Reconciliation with Nets Client</string>
+    <string name="reconciliation_with_legacy_client">Reconciliation with Legacy Client</string>
+    <string name="query_with_nets_client">Query latest with Nets Client</string>
+    <string name="query_with_legacy_client">Query latest with Legacy Client</string>
+</resources>

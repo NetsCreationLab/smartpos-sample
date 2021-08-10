@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="currency_entries">
+        <item>EUR</item>
+        <item>DKK</item>
+        <item>SEK</item>
+        <item>NOK</item>
+        <item>ISK</item>
+    </array>
+    <array name="method_entries">
+        <item>CARD</item>
+        <item>SWISH</item>
+        <item>INVOICE</item>
+        <item>EASY</item>
+        <item>SIMULATION</item>
+    </array>
+</resources>

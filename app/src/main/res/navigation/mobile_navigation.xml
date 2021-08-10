@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/navigation_sales">
+
+    <fragment
+        android:id="@+id/navigation_sales"
+        android:name="com.example.smartpossample.ui.sales.SalesFragment"
+        android:label="@string/title_sales"
+        tools:layout="@layout/fragment_sales" />
+
+    <fragment
+        android:id="@+id/navigation_refunds"
+        android:name="com.example.smartpossample.ui.refunds.RefundsFragment"
+        android:label="@string/title_refunds"
+        tools:layout="@layout/fragment_refunds" />
+
+    <fragment
+        android:id="@+id/navigation_others"
+        android:name="com.example.smartpossample.ui.others.OthersFragment"
+        android:label="@string/title_others"
+        tools:layout="@layout/fragment_others" />
+</navigation>

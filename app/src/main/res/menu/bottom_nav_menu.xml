@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/navigation_sales"
+        android:title="@string/title_sales" />
+
+    <item
+        android:id="@+id/navigation_refunds"
+        android:title="@string/title_refunds" />
+
+    <item
+        android:id="@+id/navigation_others"
+        android:title="@string/title_others" />
+
+</menu>
