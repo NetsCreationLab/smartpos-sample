@@ -10,7 +10,6 @@ import android.widget.ArrayAdapter
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
 import com.example.smartpossample.R
 import com.example.smartpossample.databinding.FragmentRefundsBinding
 import eu.nets.lab.smartpos.sdk.client.LegacyClient
@@ -19,7 +18,6 @@ import eu.nets.lab.smartpos.sdk.client.RefundManager
 import eu.nets.lab.smartpos.sdk.payload.AuxString
 import eu.nets.lab.smartpos.sdk.payload.TargetMethod
 import eu.nets.lab.smartpos.sdk.payload.refundData
-import eu.nets.lab.smartpos.sdk.payload.toAux
 import eu.nets.lab.smartpos.sdk.utility.printer.PrinterBeta
 import eu.nets.lab.smartpos.sdk.utility.printer.SlipPrinter
 import java.util.*
