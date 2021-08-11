@@ -14,7 +14,7 @@ buildscript {
 }
 
 allprojects {
-    apply(from = "secure.gradle.kts")
+    apply(from = "$rootDir/secure.gradle.kts")
     repositories {
         google()
         mavenCentral()
