@@ -18,6 +18,8 @@ class SalesFragment : Fragment() {
     private val salesViewModel: SalesViewModel by viewModels()
     private var _binding: FragmentSalesBinding? = null
 
+    private var cur = "EUR"
+
     // This property is only valid between onCreateView and
     // onDestroyView.
     private val binding get() = _binding!!
@@ -42,8 +44,6 @@ class SalesFragment : Fragment() {
             android.R.layout.simple_spinner_item,
         ).apply { setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
 
-        var currency: String = "EUR"
-
         binding.currency.adapter = currencyAdapter
         binding.currency.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(
@@ -52,11 +52,11 @@ class SalesFragment : Fragment() {
                 position: Int,
                 id: Long
             ) {
-                currency = parent.getItemAtPosition(position).toString()
+                cur = parent.getItemAtPosition(position).toString()
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {
-                currency = "EUR"
+                cur = "EUR"
             }
         }
         binding.currency.setSelection(currencyAdapter.getPosition("EUR"))
