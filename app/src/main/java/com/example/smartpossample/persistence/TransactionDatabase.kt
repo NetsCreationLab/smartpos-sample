@@ -53,7 +53,7 @@ abstract class TransactionDatabase : RoomDatabase() {
             epochTimestamp = v.epochTimestamp
             aux copyFrom v.aux
             data = v.data
-        }}
+        } }
     }
 
     companion object {
