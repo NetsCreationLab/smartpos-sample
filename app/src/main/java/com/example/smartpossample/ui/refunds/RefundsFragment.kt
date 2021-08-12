@@ -16,6 +16,7 @@ import eu.nets.lab.smartpos.sdk.client.LegacyClient
 import eu.nets.lab.smartpos.sdk.client.NetsClient
 import eu.nets.lab.smartpos.sdk.client.RefundManager
 import eu.nets.lab.smartpos.sdk.payload.AuxString
+import eu.nets.lab.smartpos.sdk.payload.RefundData
 import eu.nets.lab.smartpos.sdk.payload.TargetMethod
 import eu.nets.lab.smartpos.sdk.payload.refundData
 import eu.nets.lab.smartpos.sdk.utility.printer.PrinterBeta
@@ -26,6 +27,27 @@ class RefundsFragment : Fragment() {
 
     private val refundsViewModel: RefundsViewModel by viewModels()
     private var _binding: FragmentRefundsBinding? = null
+
+    private var cur = "EUR"
+    private var chosenMethod = TargetMethod.CARD
+
+    // Create refund data
+    // region refund-data
+    private val data: RefundData
+        get() {
+            val amount = (binding.amount.text.toString().toLongOrNull() ?: 1000)
+            val vat = (binding.amount.text.toString().toLongOrNull() ?: 250)
+            return refundData {
+                this.uuid = UUID.randomUUID()
+                this.totalAmount = amount + vat
+                this.currency = cur
+                this.method = chosenMethod
+                // Some payment methods require split VAT and amount for refunds too
+                this.aux put "VAT_PAID" value vat
+                this.aux put "AMOUNT_PAID" value amount
+            }
+        }
+    // endregion
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -71,8 +93,6 @@ class RefundsFragment : Fragment() {
             android.R.layout.simple_spinner_item,
         ).apply { setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
 
-        var currency = "EUR"
-
         binding.currency.adapter = currencyAdapter
         binding.currency.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(
@@ -81,11 +101,11 @@ class RefundsFragment : Fragment() {
                 position: Int,
                 id: Long
             ) {
-                currency = parent.getItemAtPosition(position).toString()
+                cur = parent.getItemAtPosition(position).toString()
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {
-                currency = "EUR"
+                cur = "EUR"
             }
         }
         binding.currency.setSelection(currencyAdapter.getPosition("EUR"))
@@ -99,8 +119,6 @@ class RefundsFragment : Fragment() {
             android.R.layout.simple_spinner_item
         ).apply { setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
 
-        var method = TargetMethod.CARD
-
         binding.method.adapter = methodsAdapter
         binding.method.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(
@@ -109,7 +127,7 @@ class RefundsFragment : Fragment() {
                 position: Int,
                 id: Long
             ) {
-                method = when (parent.getItemAtPosition(position).toString()) {
+                chosenMethod = when (parent.getItemAtPosition(position).toString()) {
                     "SWISH" -> TargetMethod.SWISH
                     "INVOICE" -> TargetMethod.NETS_INVOICE
                     "EASY" -> TargetMethod.EASY
@@ -119,25 +137,10 @@ class RefundsFragment : Fragment() {
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {
-                method = TargetMethod.CARD
+                chosenMethod = TargetMethod.CARD
             }
         }
         binding.method.setSelection(methodsAdapter.getPosition("CARD"))
-        // endregion
-
-        // Create refund data
-        // region refund-data
-        val amount = (binding.amount.text.toString().toLongOrNull() ?: 1000)
-        val vat = (binding.amount.text.toString().toLongOrNull() ?: 250)
-        val data = refundData {
-            this.uuid = UUID.randomUUID()
-            this.totalAmount = amount + vat
-            this.currency = currency
-            this.method = method
-            // Some payment methods require split VAT and amount for refunds too
-            this.aux put "VAT_PAID" value vat
-            this.aux put "AMOUNT_PAID" value amount
-        }
         // endregion
 
         // Set button click listeners

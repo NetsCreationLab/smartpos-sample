@@ -16,6 +16,7 @@ import eu.nets.lab.smartpos.sdk.client.LegacyClient
 import eu.nets.lab.smartpos.sdk.client.NetsClient
 import eu.nets.lab.smartpos.sdk.client.PaymentManager
 import eu.nets.lab.smartpos.sdk.payload.AuxString
+import eu.nets.lab.smartpos.sdk.payload.PaymentData
 import eu.nets.lab.smartpos.sdk.payload.paymentData
 import eu.nets.lab.smartpos.sdk.utility.printer.PrinterBeta
 import eu.nets.lab.smartpos.sdk.utility.printer.SlipPrinter
@@ -25,6 +26,21 @@ class SalesFragment : Fragment() {
 
     private val salesViewModel: SalesViewModel by viewModels()
     private var _binding: FragmentSalesBinding? = null
+
+    private var cur = "EUR"
+
+    // Create payment data
+    // region payment-data
+    private val data: PaymentData
+        get() = paymentData {
+            this.uuid = UUID.randomUUID()
+            this.amount = binding.amount.text.toString().toLongOrNull() ?: 1000
+            this.vat = binding.amount.text.toString().toLongOrNull() ?: 250
+            this.currency = cur
+            this.aux put "key" value "This is a test value"
+            this.requestedMethod = null
+        }
+    // endregion
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -67,8 +83,6 @@ class SalesFragment : Fragment() {
             android.R.layout.simple_spinner_item,
         ).apply { setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
 
-        var currency: String = "EUR"
-
         binding.currency.adapter = currencyAdapter
         binding.currency.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(
@@ -77,26 +91,14 @@ class SalesFragment : Fragment() {
                 position: Int,
                 id: Long
             ) {
-                currency = parent.getItemAtPosition(position).toString()
+                cur = parent.getItemAtPosition(position).toString()
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {
-                currency = "EUR"
+                cur = "EUR"
             }
         }
         binding.currency.setSelection(currencyAdapter.getPosition("EUR"))
-        // endregion
-
-        // Create payment data
-        // region payment-data
-        val data = paymentData {
-            this.uuid = UUID.randomUUID()
-            this.amount = binding.amount.text.toString().toLongOrNull() ?: 1000
-            this.vat = binding.amount.text.toString().toLongOrNull() ?: 250
-            this.currency = currency
-            this.aux put "key" value "This is a test value"
-            this.requestedMethod = null
-        }
         // endregion
 
         // Set button click listeners
