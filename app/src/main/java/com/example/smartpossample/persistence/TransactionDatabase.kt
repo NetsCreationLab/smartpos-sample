@@ -7,9 +7,7 @@ import androidx.room.*
 import com.example.smartpossample.persistence.entity.PaymentResultEntity
 import com.example.smartpossample.persistence.entity.RefundResultEntity
 import eu.nets.lab.smartpos.sdk.client.NetsConverters
-import eu.nets.lab.smartpos.sdk.payload.ResultPayload
-import eu.nets.lab.smartpos.sdk.payload.paymentResult
-import eu.nets.lab.smartpos.sdk.payload.refundResult
+import eu.nets.lab.smartpos.sdk.payload.*
 
 @Dao
 @Suppress("unused")
@@ -38,22 +36,38 @@ abstract class TransactionDatabase : RoomDatabase() {
     abstract val refundResultDao: RefundResultDao
 
     val newest: LiveData<ResultPayload> = MediatorLiveData<ResultPayload>().apply {
-        addSource(paymentResultDao.newest) { v -> if (v != null) this.value = paymentResult {
-            uuid = v.uuid
-            status = v.status
-            method = v.method
-            epochTimestamp = v.epochTimestamp
-            aux copyFrom v.aux
-            data = v.data
-        } }
-        addSource(refundResultDao.newest) { v -> if (v != null) this.value = refundResult {
-            uuid = v.uuid
-            status = v.status
-            method = v.method
-            epochTimestamp = v.epochTimestamp
-            aux copyFrom v.aux
-            data = v.data
-        } }
+        addSource(paymentResultDao.newest) { v ->
+            val currentNewest =
+                (this.value as? PaymentResult)?.epochTimestamp ?:
+                (this.value as? RefundResult)?.epochTimestamp ?:
+                0
+            if (v != null && v.epochTimestamp > currentNewest) {
+                this.value = paymentResult {
+                    uuid = v.uuid
+                    status = v.status
+                    method = v.method
+                    epochTimestamp = v.epochTimestamp
+                    aux copyFrom v.aux
+                    data = v.data
+                }
+            }
+        }
+        addSource(refundResultDao.newest) { v ->
+            val currentNewest =
+                (this.value as? PaymentResult)?.epochTimestamp ?:
+                (this.value as? RefundResult)?.epochTimestamp ?:
+                0
+            if (v != null && v.epochTimestamp > currentNewest) {
+                this.value = refundResult {
+                    uuid = v.uuid
+                    status = v.status
+                    method = v.method
+                    epochTimestamp = v.epochTimestamp
+                    aux copyFrom v.aux
+                    data = v.data
+                }
+            }
+        }
     }
 
     companion object {
