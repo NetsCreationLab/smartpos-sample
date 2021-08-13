@@ -23,6 +23,8 @@ class OthersFragment : Fragment() {
     // onDestroyView.
     private val binding get() = _binding!!
 
+    private var payload: ResultPayload? = null
+
     private lateinit var reversalManager: ReversalManager
     private lateinit var endOfDayManager: EndOfDayManager
     private lateinit var statusManager: StatusManager
@@ -55,8 +57,6 @@ class OthersFragment : Fragment() {
 
         _binding = FragmentOthersBinding.inflate(inflater, container, false)
         val root: View = binding.root
-
-        var payload: ResultPayload? = null
 
         // Set up payload from newest stored transaction
         // region reversal-payload
