@@ -32,14 +32,16 @@ class SalesFragment : Fragment() {
     // Create payment data
     // region payment-data
     private val data: PaymentData
-        get() = paymentData {
-            this.uuid = UUID.randomUUID()
-            this.amount = binding.amount.text.toString().toLongOrNull() ?: 1000
-            this.vat = binding.amount.text.toString().toLongOrNull() ?: 250
-            this.currency = cur
-            this.aux put "key" value "This is a test value"
-            this.requestedMethod = null
-        }
+        get() = data()
+
+    private fun data(): PaymentData = paymentData {
+        this.uuid = UUID.randomUUID()
+        this.amount = binding.amount.text.toString().toLongOrNull() ?: 1000
+        this.vat = binding.amount.text.toString().toLongOrNull() ?: 250
+        this.currency = cur
+        this.aux put "key" value "This is a test value"
+        this.requestedMethod = null
+    }
     // endregion
 
     // This property is only valid between onCreateView and

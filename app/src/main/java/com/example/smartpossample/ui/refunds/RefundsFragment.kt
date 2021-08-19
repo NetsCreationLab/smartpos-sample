@@ -34,7 +34,9 @@ class RefundsFragment : Fragment() {
     // Create refund data
     // region refund-data
     private val data: RefundData
-        get() {
+        get() = data()
+
+    private fun data(): RefundData {
             val amount = (binding.amount.text.toString().toLongOrNull() ?: 1000)
             val vat = (binding.amount.text.toString().toLongOrNull() ?: 250)
             return refundData {
@@ -43,8 +45,8 @@ class RefundsFragment : Fragment() {
                 this.currency = cur
                 this.method = chosenMethod
                 // Some payment methods require split VAT and amount for refunds too
-                this.aux put "VAT_PAID" value vat
-                this.aux put "AMOUNT_PAID" value amount
+                this.aux put "vatPaid" value vat
+                this.aux put "amountPaid" value amount
             }
         }
     // endregion
