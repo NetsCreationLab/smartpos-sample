@@ -37,7 +37,7 @@ class SalesFragment : Fragment() {
     private fun data(): PaymentData = paymentData {
         this.uuid = UUID.randomUUID()
         this.amount = binding.amount.text.toString().toLongOrNull() ?: 1000
-        this.vat = binding.amount.text.toString().toLongOrNull() ?: 250
+        this.vat = binding.vat.text.toString().toLongOrNull() ?: 250
         this.currency = cur
         this.aux put "key" value "This is a test value"
         this.requestedMethod = null

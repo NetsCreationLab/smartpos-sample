@@ -38,7 +38,7 @@ class RefundsFragment : Fragment() {
 
     private fun data(): RefundData {
             val amount = (binding.amount.text.toString().toLongOrNull() ?: 1000)
-            val vat = (binding.amount.text.toString().toLongOrNull() ?: 250)
+            val vat = (binding.vat.text.toString().toLongOrNull() ?: 250)
             return refundData {
                 this.uuid = UUID.randomUUID()
                 this.totalAmount = amount + vat
