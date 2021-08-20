@@ -60,7 +60,13 @@ class SalesFragment : Fragment() {
                 salesViewModel.persistResult(result)
 
                 // Print a receipt slip
-                SlipPrinter.getInstance(result, requireContext(), false)?.printPaymentSlip()
+                // Slightly changed from tutorial
+                SlipPrinter.getInstance(result, requireContext(), false)?.let { printer ->
+                    printer.printPaymentSlip()
+                    // Printer.free() will "print" some empty receipt to allow tearing off without
+                    // pulling first
+                    printer.free()
+                }
 
                 // Disable buttons - we can't send another sales request with the same uuid
                 binding.payNetsClient.isEnabled = false

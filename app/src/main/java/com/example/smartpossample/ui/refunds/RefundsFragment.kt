@@ -1,5 +1,6 @@
 package com.example.smartpossample.ui.refunds
 
+import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -19,6 +20,7 @@ import eu.nets.lab.smartpos.sdk.payload.AuxString
 import eu.nets.lab.smartpos.sdk.payload.RefundData
 import eu.nets.lab.smartpos.sdk.payload.TargetMethod
 import eu.nets.lab.smartpos.sdk.payload.refundData
+import eu.nets.lab.smartpos.sdk.utility.printer.ErrorSlipPrinter
 import eu.nets.lab.smartpos.sdk.utility.printer.PrinterBeta
 import eu.nets.lab.smartpos.sdk.utility.printer.SlipPrinter
 import java.util.*
@@ -68,8 +70,29 @@ class RefundsFragment : Fragment() {
 
                 // Print receipt slips
                 SlipPrinter.getInstance(result, requireContext(), false)?.let { printer ->
-                    printer.printCustomerRefundSlip()
-                    printer.getMerchantRefundSlip(true)
+                    // This is changed slightly compared to the tutorial
+                    // We print both slips, but we put one behind an alert dialogue, so the
+                    // cashier has time to rip off the first one
+                    printer.printMerchantRefundSlip(true)
+                    // Printer.free() will "print" some empty receipt to allow tearing off without
+                    // pulling first
+                    printer.free()
+                    // Only show dialogue if this is not an ErrorSlipPrinter
+                    if (printer !is ErrorSlipPrinter) {
+                        AlertDialog
+                            .Builder(requireActivity())
+                            .setTitle("Print Customer Copy")
+                            .setMessage("Do you want to print a copy for the customer?")
+                            .setPositiveButton("Yes") { _, _ ->
+                                printer.printCustomerRefundSlip()
+                                printer.free()
+                            }
+                            .setNegativeButton("No") { dialogue, _ ->
+                                dialogue.dismiss()
+                            }
+                            .create()
+                            .show()
+                    }
                 }
 
                 // Disable buttons - we can't send another refund request with the same uuid
