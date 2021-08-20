@@ -16,6 +16,10 @@ import eu.nets.lab.smartpos.sdk.utility.printer.Printer.SPLIT_LEFT_RIGHT
 import java.text.SimpleDateFormat
 import java.util.*
 
+/**
+ * This class is not in the tutorial, but can be used as an example of how to use the
+ * [PrinterUtility] utility included in the SDK
+ */
 class SamplePrinter (private val context: Context) {
     fun printShort(
             @Printer.FontSize fontSize: Int,

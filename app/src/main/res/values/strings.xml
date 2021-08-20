@@ -15,4 +15,43 @@
     <string name="reconciliation_with_legacy_client">Reconciliation with Legacy Client</string>
     <string name="query_with_nets_client">Query latest with Nets Client</string>
     <string name="query_with_legacy_client">Query latest with Legacy Client</string>
+
+    <!-- Not included in the tutorial -->
+    <string name="result">Result:</string>
+    <string name="s1f2h_scanner_demo">S1F2H Scanner demo</string>
+    <string name="count">Count:</string>
+    <string name="scan">Scan</string>
+    <string name="printer_demo">Printer Demo</string>
+    <string name="font_size">Font size</string>
+    <string name="small">Small</string>
+    <string name="regular">Regular</string>
+    <string name="large">Large</string>
+    <string name="huge">Huge</string>
+    <string name="prioritise_left">PRIORITISE_LEFT</string>
+    <string name="reverse_gravity">REVERSE_GRAVITY</string>
+    <string name="split_left_right">SPLIT_LEFT_RIGHT</string>
+    <string name="wrap_indent">WRAP_INDENT</string>
+    <string name="cut_off_ellipsis">CUT_OFF_ELLIPSIS</string>
+    <string name="cut_off">CUT_OFF</string>
+    <string name="ignore">IGNORE</string>
+    <string name="line_wrapping">Line wrapping</string>
+    <string name="styling">Styling</string>
+    <string name="bold">BOLD</string>
+    <string name="italic">ITALIC</string>
+    <string name="underline">UNDERLINE</string>
+    <string name="strikethrough">STRIKETHROUGH</string>
+    <string name="sans_serif">Sans Serif</string>
+    <string name="serif">Serif</string>
+    <string name="monospace">Monospace</string>
+    <string name="short_text">Short text</string>
+    <string name="long_text">Long text</string>
+    <string name="tragedy">Tragedy</string>
+    <string name="humorous_receipt">Humorous Receipt</string>
+    <string name="examples_not_affected_by_settings">Examples, not affected by settings</string>
+    <string name="explained_receipt">Explained Receipt</string>
+    <string name="long_text_expl">The Tragedy of Darth Plagueis is long and requires a lot of paper</string>
+    <string name="print">Print</string>
+    <string name="cancel">Cancel</string>
+    <string name="device_not_applicable">Device not applicable</string>
+    <string name="navigate_to_utilities">Navigate to utilities</string>
 </resources>

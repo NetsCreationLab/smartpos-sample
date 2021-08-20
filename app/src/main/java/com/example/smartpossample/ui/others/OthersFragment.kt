@@ -9,6 +9,8 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
+import com.example.smartpossample.R
 import com.example.smartpossample.databinding.FragmentOthersBinding
 import eu.nets.lab.smartpos.sdk.client.*
 import eu.nets.lab.smartpos.sdk.payload.*
@@ -136,6 +138,11 @@ class OthersFragment : Fragment() {
         val textView: TextView = binding.textOthers
         othersViewModel.text.observe(viewLifecycleOwner) {
             textView.text = it
+        }
+
+        // This is not included in the tutorial
+        binding.navigateToUtility.setOnClickListener {
+            findNavController().navigate(R.id.action_navigation_others_to_utilityFragment)
         }
         return root
     }

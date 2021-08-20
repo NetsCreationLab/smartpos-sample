@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.utility.UtilityFragment">
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/constraint_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/scanner_header"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/s1f2h_scanner_demo"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="30dp" />
+
+        <TextView
+            android:id="@+id/scanner_result"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/result"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBaseline_toBaselineOf="@id/scanner_button"
+            android:layout_marginStart="10dp" />
+
+        <TextView
+            android:id="@+id/scanner_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/count"
+            app:layout_constraintBaseline_toBaselineOf="@id/scanner_result"
+            app:layout_constraintStart_toEndOf="@id/scanner_result"
+            android:layout_marginStart="10dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/scanner_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/scan"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/scanner_header"
+            android:layout_marginEnd="10dp"
+            android:layout_marginTop="10dp" />
+
+        <TextView
+            android:id="@+id/printer_header"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/printer_demo"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/scanner_button"
+            android:layout_marginTop="30dp" />
+
+        <TextView
+            android:id="@+id/printer_fontsize_header"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/font_size"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/printer_header"
+            android:layout_marginStart="10dp" />
+
+        <RadioGroup
+            android:id="@+id/printer_fontsize_radios"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/printer_fontsize_header"
+            android:layout_marginStart="10dp"
+            android:orientation="horizontal">
+            <RadioButton
+                android:id="@+id/printer_fontsize_small"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:onClick="onSize"
+                android:text="@string/small" />
+            <RadioButton
+                android:id="@+id/printer_fontsize_regular"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="onSize"
+                android:text="@string/regular" />
+            <RadioButton
+                android:id="@+id/printer_fontsize_large"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="onSize"
+                android:text="@string/large" />
+            <RadioButton
+                android:id="@+id/printer_fontsize_huge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="onSize"
+                android:text="@string/huge" />
+        </RadioGroup>
+
+        <TextView
+            android:id="@+id/printer_wordwrap_header"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/line_wrapping"
+            app:layout_constraintTop_toBottomOf="@id/printer_fontsize_radios"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginStart="10dp" />
+
+        <CheckBox
+            android:id="@+id/printer_wordwrap_ignore"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/ignore"
+            android:onClick="onWordWrap"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/printer_wordwrap_header"
+            android:layout_marginStart="10dp" />
+
+        <CheckBox
+            android:id="@+id/printer_wordwrap_cutoff"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/cut_off"
+            android:onClick="onWordWrap"
+            app:layout_constraintStart_toEndOf="@id/printer_wordwrap_ignore"
+            app:layout_constraintBaseline_toBaselineOf="@id/printer_wordwrap_ignore"
+            android:layout_marginStart="10dp" />
+
+        <CheckBox
+            android:id="@+id/printer_wordwrap_cutoffellipsis"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/cut_off_ellipsis"
+            android:onClick="onWordWrap"
+            app:layout_constraintStart_toEndOf="@id/printer_wordwrap_cutoff"
+            app:layout_constraintBaseline_toBaselineOf="@id/printer_wordwrap_ignore"
+            android:layout_marginStart="10dp" />
+
+        <CheckBox
+            android:id="@+id/printer_wordwrap_wrapindent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:text="@string/wrap_indent"
+            android:onClick="onWordWrap"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/printer_wordwrap_ignore" />
+
+        <CheckBox
+            android:id="@+id/printer_wordwrap_splitleftright"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/split_left_right"
+            android:onClick="onWordWrap"
+            app:layout_constraintStart_toEndOf="@id/printer_wordwrap_wrapindent"
+            app:layout_constraintBaseline_toBaselineOf="@id/printer_wordwrap_wrapindent"
+            android:layout_marginStart="10dp" />
+
+        <CheckBox
+            android:id="@+id/printer_wordwrap_reversegravity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:onClick="onWordWrap"
+            android:text="@string/reverse_gravity"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/printer_wordwrap_wrapindent" />
+
+        <CheckBox
+            android:id="@+id/printer_wordwrap_prioritiseleft"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/prioritise_left"
+            android:onClick="onWordWrap"
+            app:layout_constraintStart_toEndOf="@id/printer_wordwrap_reversegravity"
+            app:layout_constraintBaseline_toBaselineOf="@id/printer_wordwrap_reversegravity"
+            android:layout_marginStart="10dp" />
+
+        <TextView
+            android:id="@+id/printer_styling_header"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/styling"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/printer_wordwrap_reversegravity"
+            android:layout_marginStart="10dp" />
+
+        <CheckBox
+            android:id="@+id/printer_styling_bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/bold"
+            android:onClick="onStyling"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/printer_styling_header"
+            android:layout_marginStart="10dp" />
+
+        <CheckBox
+            android:id="@+id/printer_styling_italic"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/italic"
+            android:onClick="onStyling"
+            app:layout_constraintStart_toEndOf="@id/printer_styling_bold"
+            app:layout_constraintBaseline_toBaselineOf="@id/printer_styling_bold"
+            android:layout_marginStart="10dp" />
+
+        <CheckBox
+            android:id="@+id/printer_styling_underline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/underline"
+            android:onClick="onStyling"
+            app:layout_constraintStart_toEndOf="@id/printer_styling_italic"
+            app:layout_constraintBaseline_toBaselineOf="@id/printer_styling_bold"
+            android:layout_marginStart="10dp"/>
+
+        <CheckBox
+            android:id="@+id/printer_styling_strikethrough"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/strikethrough"
+            android:onClick="onStyling"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/printer_styling_bold"
+            android:layout_marginStart="10dp" />
+
+        <TextView
+            android:id="@+id/printer_font_header"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Font"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/printer_styling_strikethrough"
+            android:layout_marginStart="10dp" />
+
+        <RadioGroup
+            android:id="@+id/printer_font_radios"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/printer_font_header"
+            android:layout_marginStart="10dp"
+            android:orientation="horizontal">
+            <RadioButton
+                android:id="@+id/printer_font_sansserif"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:onClick="onFont"
+                android:text="@string/sans_serif" />
+            <RadioButton
+                android:id="@+id/printer_font_serif"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="onFont"
+                android:text="@string/serif" />
+            <RadioButton
+                android:id="@+id/printer_font_monospace"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="onFont"
+                android:text="@string/monospace" />
+        </RadioGroup>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/printer_print_shorttest"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/short_text"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/printer_font_radios"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="10dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/printer_print_longtest"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/long_text"
+            app:layout_constraintStart_toEndOf="@id/printer_print_shorttest"
+            app:layout_constraintBaseline_toBaselineOf="@id/printer_print_shorttest"
+            android:layout_marginStart="10dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/printer_print_thetragedy"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/tragedy"
+            app:layout_constraintStart_toEndOf="@id/printer_print_longtest"
+            app:layout_constraintBaseline_toBaselineOf="@id/printer_print_shorttest"
+            android:layout_marginStart="10dp" />
+
+        <TextView
+            android:id="@+id/printer_print_notaffected"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/examples_not_affected_by_settings"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/printer_print_shorttest"
+            android:layout_marginTop="10dp"
+            android:layout_marginStart="10dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/printer_print_receipt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/humorous_receipt"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/printer_print_notaffected"
+            android:layout_marginStart="10dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/printer_print_receiptexplained"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/explained_receipt"
+            app:layout_constraintStart_toEndOf="@id/printer_print_receipt"
+            app:layout_constraintBaseline_toBaselineOf="@id/printer_print_receipt"
+            android:layout_marginStart="10dp" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>

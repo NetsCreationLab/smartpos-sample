@@ -21,5 +21,14 @@
         android:id="@+id/navigation_others"
         android:name="com.example.smartpossample.ui.others.OthersFragment"
         android:label="@string/title_others"
-        tools:layout="@layout/fragment_others" />
+        tools:layout="@layout/fragment_others" >
+        <action
+            android:id="@+id/action_navigation_others_to_utilityFragment"
+            app:destination="@id/utilityFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/utilityFragment"
+        android:name="com.example.smartpossample.ui.utility.UtilityFragment"
+        android:label="fragment_utility"
+        tools:layout="@layout/fragment_utility" />
 </navigation>
