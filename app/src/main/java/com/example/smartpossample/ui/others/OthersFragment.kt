@@ -14,6 +14,8 @@ import com.example.smartpossample.R
 import com.example.smartpossample.databinding.FragmentOthersBinding
 import eu.nets.lab.smartpos.sdk.client.*
 import eu.nets.lab.smartpos.sdk.payload.*
+import eu.nets.lab.smartpos.sdk.utility.printer.PrinterBeta
+import eu.nets.lab.smartpos.sdk.utility.printer.SlipPrinter
 import java.util.*
 
 class OthersFragment : Fragment() {
@@ -31,19 +33,42 @@ class OthersFragment : Fragment() {
     private lateinit var endOfDayManager: EndOfDayManager
     private lateinit var statusManager: StatusManager
 
+    @OptIn(PrinterBeta::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         NetsClient.get(this).use {
             this.reversalManager = it.reversalManager.register { result ->
                 othersViewModel.setText(result.status.toString())
+                // This is not included in the tutorial
+                SlipPrinter.getInstance(result, requireContext(), false)?.let { printer ->
+                    printer.printReversalSlip()
+
+                    printer.free()
+                }
             }
             this.endOfDayManager = it.endOfDayManager.register { result ->
                 othersViewModel.setText("End of day result ${result.eodAux}")
             }
             this.statusManager = it.statusManager.register { result ->
                 val status = when (result) {
-                    is PaymentResult -> result.status.toString()
-                    is RefundResult -> result.status.toString()
+                    is PaymentResult -> {
+                        // This is not included in the tutorial
+                        SlipPrinter.getInstance(result, requireContext(), true)?.let { printer ->
+                            printer.printPaymentSlip()
+
+                            printer.free()
+                        }
+                        result.status.toString()
+                    }
+                    is RefundResult -> {
+                        // This is not included in the tutorial
+                        SlipPrinter.getInstance(result, requireContext(), true)?.let { printer ->
+                            printer.printMerchantRefundSlip(true)
+
+                            printer.free()
+                        }
+                        result.status.toString()
+                    }
                     else -> "Not a result"
                 }
                 othersViewModel.setText("Query: ${result::class.simpleName} ($status)")
