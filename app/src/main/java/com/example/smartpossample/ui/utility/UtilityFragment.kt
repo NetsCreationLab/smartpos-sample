@@ -131,8 +131,8 @@ class UtilityFragment : Fragment() {
      * We handle the [ScannerUtility] in [onResume] and [onPause] to make sure it's only running
      * when in the foreground
      */
+    @OptIn(ExperimentalContracts::class)
     @SuppressLint("SetTextI18n")
-    @ExperimentalContracts
     override fun onResume() {
         super.onResume()
         // This is an example of how to use the ScannerUtility

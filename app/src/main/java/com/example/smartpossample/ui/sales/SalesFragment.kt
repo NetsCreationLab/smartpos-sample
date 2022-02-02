@@ -1,6 +1,7 @@
 package com.example.smartpossample.ui.sales
 
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,9 +11,11 @@ import android.widget.ArrayAdapter
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.preference.PreferenceManager
 import com.example.smartpossample.R
 import com.example.smartpossample.databinding.FragmentSalesBinding
 import eu.nets.lab.smartpos.sdk.client.LegacyClient
+import eu.nets.lab.smartpos.sdk.client.LegacyPaymentManager
 import eu.nets.lab.smartpos.sdk.client.NetsClient
 import eu.nets.lab.smartpos.sdk.client.PaymentManager
 import eu.nets.lab.smartpos.sdk.payload.AuxString
@@ -27,7 +30,9 @@ class SalesFragment : Fragment() {
     private val salesViewModel: SalesViewModel by viewModels()
     private var _binding: FragmentSalesBinding? = null
 
-    private var cur = "EUR"
+    private lateinit var sharedPreferences: SharedPreferences
+
+    private lateinit var cur: String
 
     // Create payment data
     // region payment-data
@@ -49,13 +54,16 @@ class SalesFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var paymentManager: PaymentManager
+    private lateinit var legacyPaymentManager: LegacyPaymentManager
 
-    @OptIn(PrinterBeta::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        NetsClient.get(this).use {
+        this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
+        this.cur = sharedPreferences.getString("preference_currency", "EUR")!!
+
+        NetsClient.get().use { client ->
             // Handle result from Nets client
-            this.paymentManager = it.paymentManager.register { result ->
+            this.paymentManager = client.paymentManager(this).register { result ->
                 salesViewModel.setText(result.status.toString())
                 salesViewModel.persistResult(result)
 
@@ -67,10 +75,19 @@ class SalesFragment : Fragment() {
                     // pulling first
                     printer.free()
                 }
+            }
+            this.legacyPaymentManager = client.legacyPaymentManager(this::startActivityForResult).register { result ->
+                salesViewModel.setText(result.status.toString())
+                salesViewModel.persistResult(result)
 
-                // Disable buttons - we can't send another sales request with the same uuid
-                // binding.payNetsClient.isEnabled = false
-                // binding.payLegacyClient.isEnabled = false
+                // Print a receipt slip
+                // Slightly changed from tutorial
+                SlipPrinter.getInstance(result, requireContext(), false)?.let { printer ->
+                    printer.printPaymentSlip()
+                    // Printer.free() will "print" some empty receipt to allow tearing off without
+                    // pulling first
+                    printer.free()
+                }
             }
         }
     }
@@ -83,32 +100,6 @@ class SalesFragment : Fragment() {
         _binding = FragmentSalesBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        // Setup currency spinner
-        // region currency-spinner
-        val currencyAdapter = ArrayAdapter.createFromResource(
-            requireContext(),
-            R.array.currency_entries,
-            android.R.layout.simple_spinner_item,
-        ).apply { setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
-
-        binding.currency.adapter = currencyAdapter
-        binding.currency.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(
-                parent: AdapterView<*>,
-                view: View?,
-                position: Int,
-                id: Long
-            ) {
-                cur = parent.getItemAtPosition(position).toString()
-            }
-
-            override fun onNothingSelected(parent: AdapterView<*>?) {
-                cur = "EUR"
-            }
-        }
-        binding.currency.setSelection(currencyAdapter.getPosition("EUR"))
-        // endregion
-
         // Set button click listeners
         // region button-listeners
         binding.payNetsClient.setOnClickListener {
@@ -116,8 +107,7 @@ class SalesFragment : Fragment() {
         }
 
         binding.payLegacyClient.setOnClickListener {
-            val intent = LegacyClient.paymentIntent(data)
-            startActivityForResult(intent, 2)
+            legacyPaymentManager.process(data)
         }
         // endregion
 
@@ -128,23 +118,9 @@ class SalesFragment : Fragment() {
         return root
     }
 
-    @OptIn(PrinterBeta::class)
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        // Receive result when using LegacyClient
-        val result = LegacyClient.extractPaymentResult(data, resultCode)
-        if ((result.aux["cause"] as? AuxString)?.value != "no response") {
-            salesViewModel.setText(result.status.toString())
-            salesViewModel.persistResult(result)
-
-            // Print a receipt slip
-            SlipPrinter.getInstance(result, requireContext(), false)?.printPaymentSlip()
-
-            // Disable buttons - we can't send another sales request with the same uuid
-            binding.payNetsClient.isEnabled = false
-            binding.payLegacyClient.isEnabled = false
-        } else {
-            super.onActivityResult(requestCode, resultCode, data)
-        }
+        legacyPaymentManager.handleResult(requestCode, resultCode, data)
+        super.onActivityResult(requestCode, resultCode, data)
     }
 
     override fun onDestroyView() {

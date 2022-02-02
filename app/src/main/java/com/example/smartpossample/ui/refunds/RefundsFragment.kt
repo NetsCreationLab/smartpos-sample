@@ -2,6 +2,7 @@ package com.example.smartpossample.ui.refunds
 
 import android.app.AlertDialog
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -11,17 +12,13 @@ import android.widget.ArrayAdapter
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import com.example.smartpossample.R
+import androidx.preference.PreferenceManager
 import com.example.smartpossample.databinding.FragmentRefundsBinding
-import eu.nets.lab.smartpos.sdk.client.LegacyClient
+import eu.nets.lab.smartpos.sdk.client.LegacyRefundManager
 import eu.nets.lab.smartpos.sdk.client.NetsClient
 import eu.nets.lab.smartpos.sdk.client.RefundManager
-import eu.nets.lab.smartpos.sdk.payload.AuxString
-import eu.nets.lab.smartpos.sdk.payload.RefundData
-import eu.nets.lab.smartpos.sdk.payload.TargetMethod
-import eu.nets.lab.smartpos.sdk.payload.refundData
+import eu.nets.lab.smartpos.sdk.payload.*
 import eu.nets.lab.smartpos.sdk.utility.printer.ErrorSlipPrinter
-import eu.nets.lab.smartpos.sdk.utility.printer.PrinterBeta
 import eu.nets.lab.smartpos.sdk.utility.printer.SlipPrinter
 import java.util.*
 
@@ -30,7 +27,9 @@ class RefundsFragment : Fragment() {
     private val refundsViewModel: RefundsViewModel by viewModels()
     private var _binding: FragmentRefundsBinding? = null
 
-    private var cur = "EUR"
+    private lateinit var sharedPreferences: SharedPreferences
+
+    private lateinit var cur: String
     private var chosenMethod = TargetMethod.CARD
 
     // Create refund data
@@ -58,12 +57,15 @@ class RefundsFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var refundManager: RefundManager
+    private lateinit var legacyRefundManager: LegacyRefundManager
 
-    @OptIn(PrinterBeta::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        NetsClient.get(this).use {
-            this.refundManager = it.refundManager.register { result ->
+        this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
+        this.cur = sharedPreferences.getString("preference_currency", "EUR")!!
+
+        NetsClient.get().use { client ->
+            this.refundManager = client.refundManager(this).register { result ->
                 // Handle result from Nets client
                 refundsViewModel.setText(result.status.toString())
                 refundsViewModel.persistResult(result)
@@ -94,10 +96,38 @@ class RefundsFragment : Fragment() {
                             .show()
                     }
                 }
+            }
+            this.legacyRefundManager = client.legacyRefundManager(this::startActivityForResult).register { result ->
+                // Handle result from Nets client
+                refundsViewModel.setText(result.status.toString())
+                refundsViewModel.persistResult(result)
 
-                // Disable buttons - we can't send another refund request with the same uuid
-                // binding.refundNetsClient.isEnabled = false
-                // binding.refundLegacyClient.isEnabled = false
+                // Print receipt slips
+                SlipPrinter.getInstance(result, requireContext(), false)?.let { printer ->
+                    // This is changed slightly compared to the tutorial
+                    // We print both slips, but we put one behind an alert dialogue, so the
+                    // cashier has time to rip off the first one
+                    printer.printMerchantRefundSlip(true)
+                    // Printer.free() will "print" some empty receipt to allow tearing off without
+                    // pulling first
+                    printer.free()
+                    // Only show dialogue if this is not an ErrorSlipPrinter
+                    if (printer !is ErrorSlipPrinter) {
+                        AlertDialog
+                            .Builder(requireActivity())
+                            .setTitle("Print Customer Copy")
+                            .setMessage("Do you want to print a copy for the customer?")
+                            .setPositiveButton("Yes") { _, _ ->
+                                printer.printCustomerRefundSlip()
+                                printer.free()
+                            }
+                            .setNegativeButton("No") { dialogue, _ ->
+                                dialogue.dismiss()
+                            }
+                            .create()
+                            .show()
+                    }
+                }
             }
         }
     }
@@ -110,62 +140,36 @@ class RefundsFragment : Fragment() {
         _binding = FragmentRefundsBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        // Setup currency spinner
-        // region currency-spinner
-        val currencyAdapter = ArrayAdapter.createFromResource(
-            requireContext(),
-            R.array.currency_entries,
-            android.R.layout.simple_spinner_item,
-        ).apply { setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
-
-        binding.currency.adapter = currencyAdapter
-        binding.currency.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(
-                parent: AdapterView<*>,
-                view: View?,
-                position: Int,
-                id: Long
-            ) {
-                cur = parent.getItemAtPosition(position).toString()
-            }
-
-            override fun onNothingSelected(parent: AdapterView<*>?) {
-                cur = "EUR"
-            }
-        }
-        binding.currency.setSelection(currencyAdapter.getPosition("EUR"))
-        // endregion
-
         // Setup method spinner
         // region method-spinner
-        val methodsAdapter = ArrayAdapter.createFromResource(
-            requireContext(),
-            R.array.method_entries,
-            android.R.layout.simple_spinner_item
-        ).apply { setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
+        NetsClient.get().use { client ->
+            client.advancedAdminManager(requireContext()).register { result ->
+                val methodsList = result.methodResultOrNull() ?: listOf(TargetMethod.CARD)
 
-        binding.method.adapter = methodsAdapter
-        binding.method.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(
-                parent: AdapterView<*>,
-                view: View?,
-                position: Int,
-                id: Long
-            ) {
-                chosenMethod = when (parent.getItemAtPosition(position).toString()) {
-                    "SWISH" -> TargetMethod.SWISH
-                    "INVOICE" -> TargetMethod.NETS_INVOICE
-                    "EASY" -> TargetMethod.EASY
-                    "SIMULATION" -> TargetMethod.SIMULATION
-                    else -> TargetMethod.CARD
+                val methodsAdapter = ArrayAdapter(
+                    requireContext(),
+                    android.R.layout.simple_spinner_item,
+                    methodsList.map { it.toString() }.toTypedArray(),
+                ).apply { setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
+
+                binding.method.adapter = methodsAdapter
+                binding.method.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                    override fun onItemSelected(
+                        parent: AdapterView<*>,
+                        view: View?,
+                        position: Int,
+                        id: Long
+                    ) {
+                        chosenMethod = TargetMethod.valueOf(parent.getItemAtPosition(position).toString())
+                    }
+
+                    override fun onNothingSelected(parent: AdapterView<*>?) {
+                        chosenMethod = TargetMethod.CARD
+                    }
                 }
-            }
-
-            override fun onNothingSelected(parent: AdapterView<*>?) {
-                chosenMethod = TargetMethod.CARD
-            }
+                binding.method.setSelection(methodsAdapter.getPosition(TargetMethod.CARD.toString()))
+            }.process(AdminRequest.methodRequest)
         }
-        binding.method.setSelection(methodsAdapter.getPosition("CARD"))
         // endregion
 
         // Set button click listeners
@@ -175,8 +179,7 @@ class RefundsFragment : Fragment() {
         }
 
         binding.refundLegacyClient.setOnClickListener {
-            val intent = LegacyClient.refundIntent(data)
-            startActivityForResult(intent, 2)
+            legacyRefundManager.process(data)
         }
         // endregion
 
@@ -187,26 +190,9 @@ class RefundsFragment : Fragment() {
         return root
     }
 
-    @OptIn(PrinterBeta::class)
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        // Receive result when using LegacyClient
-        val result = LegacyClient.extractRefundResult(data, resultCode)
-        if ((result.aux["cause"] as? AuxString)?.value != "no response") {
-            refundsViewModel.setText(result.status.toString())
-            refundsViewModel.persistResult(result)
-
-            // Print receipt slips
-            SlipPrinter.getInstance(result, requireContext(), false)?.let { printer ->
-                printer.printCustomerRefundSlip()
-                printer.getMerchantRefundSlip(true)
-            }
-
-            // Disable buttons - we can't send another refund request with the same uuid
-            binding.refundNetsClient.isEnabled = false
-            binding.refundLegacyClient.isEnabled = false
-        } else {
-            super.onActivityResult(requestCode, resultCode, data)
-        }
+        legacyRefundManager.handleResult(requestCode, resultCode, data)
+        super.onActivityResult(requestCode, resultCode, data)
     }
 
     override fun onDestroyView() {
