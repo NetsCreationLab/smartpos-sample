@@ -7,13 +7,13 @@ plugins {
 
 android {
     // This is pretty default Android project setup
-    compileSdkVersion(30)
+    compileSdkVersion(31)
     buildToolsVersion("31.0.0")
 
     defaultConfig {
         applicationId("com.example.smartpossample")
-        minSdkVersion(23)
-        targetSdkVersion(30)
+        minSdkVersion(26)
+        targetSdkVersion(31)
         versionCode = 1
         versionName = "1.0"
 

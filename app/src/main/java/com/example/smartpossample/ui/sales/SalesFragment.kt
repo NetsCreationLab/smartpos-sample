@@ -69,8 +69,8 @@ class SalesFragment : Fragment() {
                 }
 
                 // Disable buttons - we can't send another sales request with the same uuid
-                binding.payNetsClient.isEnabled = false
-                binding.payLegacyClient.isEnabled = false
+                // binding.payNetsClient.isEnabled = false
+                // binding.payLegacyClient.isEnabled = false
             }
         }
     }

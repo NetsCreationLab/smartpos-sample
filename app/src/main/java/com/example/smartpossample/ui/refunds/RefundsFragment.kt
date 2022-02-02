@@ -96,8 +96,8 @@ class RefundsFragment : Fragment() {
                 }
 
                 // Disable buttons - we can't send another refund request with the same uuid
-                binding.refundNetsClient.isEnabled = false
-                binding.refundLegacyClient.isEnabled = false
+                // binding.refundNetsClient.isEnabled = false
+                // binding.refundLegacyClient.isEnabled = false
             }
         }
     }
