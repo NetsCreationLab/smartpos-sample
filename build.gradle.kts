@@ -5,7 +5,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:4.2.2")
+        classpath("com.android.tools.build:gradle:7.0.4")
         classpath(kotlin("gradle-plugin", ProjectConstants.KOTLIN_VERSION))
 
         // NOTE: Do not place your application dependencies here; they belong
@@ -14,7 +14,7 @@ buildscript {
 }
 
 allprojects {
-    apply(from = "secure.gradle.kts")
+    apply(from = File(rootDir, "secure.gradle.kts"))
     repositories {
         google()
         mavenCentral()
