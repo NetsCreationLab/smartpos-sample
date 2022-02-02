@@ -40,10 +40,10 @@ class RefundsFragment : Fragment() {
 
         // Setup method spinner
         // region method-spinner
-        val methodsAdapter = ArrayAdapter.createFromResource(
+        val methodsAdapter = ArrayAdapter(
             requireContext(),
-            R.array.method_entries,
-            android.R.layout.simple_spinner_item
+            android.R.layout.simple_spinner_item,
+            arrayOf<String>()
         ).apply { setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
 
         binding.method.adapter = methodsAdapter
