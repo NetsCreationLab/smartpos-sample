@@ -17,8 +17,10 @@ class SalesFragment : Fragment() {
 
     private val salesViewModel: SalesViewModel by viewModels()
     private var _binding: FragmentSalesBinding? = null
+    
+    private val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
 
-    private var cur = "EUR"
+    private var cur = sharedPreferences.getString("preference_currency", "EUR")
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -35,32 +37,6 @@ class SalesFragment : Fragment() {
     ): View {
         _binding = FragmentSalesBinding.inflate(inflater, container, false)
         val root: View = binding.root
-
-        // Setup currency spinner
-        // region currency-spinner
-        val currencyAdapter = ArrayAdapter.createFromResource(
-            requireContext(),
-            R.array.currency_entries,
-            android.R.layout.simple_spinner_item,
-        ).apply { setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
-
-        binding.currency.adapter = currencyAdapter
-        binding.currency.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(
-                parent: AdapterView<*>,
-                view: View?,
-                position: Int,
-                id: Long
-            ) {
-                cur = parent.getItemAtPosition(position).toString()
-            }
-
-            override fun onNothingSelected(parent: AdapterView<*>?) {
-                cur = "EUR"
-            }
-        }
-        binding.currency.setSelection(currencyAdapter.getPosition("EUR"))
-        // endregion
 
         val textSales: TextView = binding.textSales
         salesViewModel.text.observe(viewLifecycleOwner) {
