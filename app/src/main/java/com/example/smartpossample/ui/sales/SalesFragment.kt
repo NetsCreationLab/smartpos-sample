@@ -18,9 +18,9 @@ class SalesFragment : Fragment() {
     private val salesViewModel: SalesViewModel by viewModels()
     private var _binding: FragmentSalesBinding? = null
     
-    private val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
+    private lateinit var sharedPreferences: SharedPreferences
 
-    private var cur = sharedPreferences.getString("preference_currency", "EUR")
+    private lateinit var cur: String
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -28,6 +28,8 @@ class SalesFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
+        this.cur = sharedPreferences.getString("preference_currency", "EUR")!!
     }
 
     override fun onCreateView(
