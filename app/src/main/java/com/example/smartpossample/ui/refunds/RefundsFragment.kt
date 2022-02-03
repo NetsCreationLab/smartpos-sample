@@ -28,6 +28,12 @@ class RefundsFragment : Fragment() {
     private var _binding: FragmentRefundsBinding? = null
 
     private lateinit var sharedPreferences: SharedPreferences
+    private val observer: SharedPreferences.OnSharedPreferenceChangeListener =
+        SharedPreferences.OnSharedPreferenceChangeListener { sharedPreferences, key ->
+            if (key == "preference_currency") {
+                this@RefundsFragment.cur = sharedPreferences.getString(key, "EUR")!!
+            }
+        }
 
     private lateinit var cur: String
     private var chosenMethod = TargetMethod.CARD
@@ -63,6 +69,7 @@ class RefundsFragment : Fragment() {
         super.onCreate(savedInstanceState)
         this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
         this.cur = sharedPreferences.getString("preference_currency", "EUR")!!
+        this.sharedPreferences.registerOnSharedPreferenceChangeListener(observer)
 
         NetsClient.get().use { client ->
             this.refundManager = client.refundManager(this).register { result ->
@@ -198,5 +205,10 @@ class RefundsFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        sharedPreferences.unregisterOnSharedPreferenceChangeListener(observer)
     }
 }

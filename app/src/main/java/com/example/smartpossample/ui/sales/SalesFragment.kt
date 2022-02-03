@@ -31,6 +31,12 @@ class SalesFragment : Fragment() {
     private var _binding: FragmentSalesBinding? = null
 
     private lateinit var sharedPreferences: SharedPreferences
+    private val observer: SharedPreferences.OnSharedPreferenceChangeListener =
+        SharedPreferences.OnSharedPreferenceChangeListener { sharedPreferences, key ->
+            if (key == "preference_currency") {
+                this@SalesFragment.cur = sharedPreferences.getString(key, "EUR")!!
+            }
+        }
 
     private lateinit var cur: String
 
@@ -60,6 +66,7 @@ class SalesFragment : Fragment() {
         super.onCreate(savedInstanceState)
         this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
         this.cur = sharedPreferences.getString("preference_currency", "EUR")!!
+        this.sharedPreferences.registerOnSharedPreferenceChangeListener(observer)
 
         NetsClient.get().use { client ->
             // Handle result from Nets client
@@ -126,5 +133,10 @@ class SalesFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        sharedPreferences.unregisterOnSharedPreferenceChangeListener(observer)
     }
 }
