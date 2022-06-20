@@ -3,6 +3,7 @@ plugins {
     kotlin("android")
     id("kotlin-parcelize")
     kotlin("kapt")
+    id("idea")
 }
 
 android {
@@ -49,6 +50,13 @@ android {
     }
 }
 
+idea {
+    module {
+        isDownloadJavadoc = true
+        isDownloadSources = true
+    }
+}
+
 dependencies {
     // Default implementations from Android Studio template project
     implementation(kotlin("stdlib-jdk8", version = ProjectConstants.KOTLIN_VERSION))
@@ -68,7 +76,13 @@ dependencies {
     androidTestImplementation("androidx.test.espresso:espresso-core:3.4.0")
 
     // Implementation for Nets SmartPOS SDK
-    implementation(group = "eu.nets.lab.smartpos", name = "nets-smartpos-sdk", version = ProjectConstants.SDK_VERSION)
+    implementation(group = "eu.nets.lab.smartpos", name = "sdk-core", version = ProjectConstants.SDK_VERSION)
+    implementation(group = "eu.nets.lab.smartpos", name = "sdk-utilities", version = ProjectConstants.UTILITIES_VERSION)
+    implementation(group = "eu.nets.lab.smartpos", name = "sdk-printer", version = ProjectConstants.PRINTER_VERSION)
+    implementation(group = "eu.nets.lab.smartpos", name = "sdk-printer-castles", version = ProjectConstants.PRINTER_VERSION)
+    implementation(group = "eu.nets.lab.smartpos", name = "sdk-room-extensions-jackson", version = ProjectConstants.ROOM_VERSION)
+    // Not in tutorial
+    implementation(group = "eu.nets.lab.smartpos", name = "sdk-scanner-castles", version = ProjectConstants.SCANNER_VERSION)
 
     // Kotlin support for Room
     implementation("androidx.room:room-ktx:2.4.1")

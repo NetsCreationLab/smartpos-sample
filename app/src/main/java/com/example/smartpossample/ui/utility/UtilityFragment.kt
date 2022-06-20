@@ -12,7 +12,7 @@ import androidx.fragment.app.Fragment
 import com.example.smartpossample.R
 import com.example.smartpossample.databinding.FragmentUtilityBinding
 import com.example.smartpossample.printer.SamplePrinter
-import eu.nets.lab.smartpos.sdk.Log
+import eu.nets.lab.smartpos.sdk.utility.Log
 import eu.nets.lab.smartpos.sdk.utility.printer.Printer
 import eu.nets.lab.smartpos.sdk.utility.scanner.s1f2.*
 import kotlin.contracts.ExperimentalContracts

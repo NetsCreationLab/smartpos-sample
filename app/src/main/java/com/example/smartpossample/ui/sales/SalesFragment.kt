@@ -1,28 +1,25 @@
 package com.example.smartpossample.ui.sales
 
+import android.app.AlertDialog
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.preference.PreferenceManager
-import com.example.smartpossample.R
 import com.example.smartpossample.databinding.FragmentSalesBinding
-import eu.nets.lab.smartpos.sdk.client.LegacyClient
 import eu.nets.lab.smartpos.sdk.client.LegacyPaymentManager
 import eu.nets.lab.smartpos.sdk.client.NetsClient
 import eu.nets.lab.smartpos.sdk.client.PaymentManager
-import eu.nets.lab.smartpos.sdk.payload.AuxString
 import eu.nets.lab.smartpos.sdk.payload.PaymentData
+import eu.nets.lab.smartpos.sdk.payload.PaymentResult
 import eu.nets.lab.smartpos.sdk.payload.paymentData
-import eu.nets.lab.smartpos.sdk.utility.printer.PrinterBeta
-import eu.nets.lab.smartpos.sdk.utility.printer.SlipPrinter
+import eu.nets.lab.smartpos.sdk.payload.requiresSignature
+import eu.nets.lab.smartpos.sdk.utility.printer.SlipPrinterUtility
 import java.util.*
 
 class SalesFragment : Fragment() {
@@ -75,26 +72,61 @@ class SalesFragment : Fragment() {
                 salesViewModel.persistResult(result)
 
                 // Print a receipt slip
-                // Slightly changed from tutorial
-                SlipPrinter.getInstance(result, requireContext(), false)?.let { printer ->
-                    printer.printPaymentSlip()
+                val printer = SlipPrinterUtility(requireContext())
+                if (result.requiresSignature()) {
+                    printer.printMerchantReceipt(result, false, SlipPrinterUtility.SlipFlag.RECIPIENT_INFO)
                     // Printer.free() will "print" some empty receipt to allow tearing off without
                     // pulling first
                     printer.free()
+                    askForPrintCustomerSlip(printer, result)
+                } else {
+                    AlertDialog
+                        .Builder(requireActivity())
+                        .setTitle("Print Merchant Receipt")
+                        .setMessage("Do you want to print a receipt for your bookkeeping?")
+                        .setPositiveButton("Yes") { _, _ ->
+                            printer.printMerchantReceipt(result, false, SlipPrinterUtility.SlipFlag.RECIPIENT_INFO)
+                            printer.free()
+                            askForPrintCustomerSlip(printer, result)
+                        }
+                        .setNegativeButton("No") { dialogue, _ ->
+                            dialogue.dismiss()
+                        }
+                        .create()
+                        .show()
                 }
+                askForPrintCustomerSlip(printer, result)
             }
             this.legacyPaymentManager = client.legacyPaymentManager(this::startActivityForResult).register { result ->
                 salesViewModel.setText(result.status.toString())
                 salesViewModel.persistResult(result)
 
                 // Print a receipt slip
-                // Slightly changed from tutorial
-                SlipPrinter.getInstance(result, requireContext(), false)?.let { printer ->
-                    printer.printPaymentSlip()
+                val printer = SlipPrinterUtility(requireContext())
+                if (result.requiresSignature()) {
+                    printer.printMerchantReceipt(result, false, SlipPrinterUtility.SlipFlag.RECIPIENT_INFO)
                     // Printer.free() will "print" some empty receipt to allow tearing off without
                     // pulling first
                     printer.free()
+                    askForPrintCustomerSlip(printer, result)
+                } else {
+                    AlertDialog
+                        .Builder(requireActivity())
+                        .setTitle("Print Merchant Receipt")
+                        .setMessage("Do you want to print a receipt for your bookkeeping?")
+                        .setPositiveButton("Yes") { _, _ ->
+                            printer.printMerchantReceipt(result, false, SlipPrinterUtility.SlipFlag.RECIPIENT_INFO)
+                            printer.free()
+                            askForPrintCustomerSlip(printer, result)
+                        }
+                        .setNegativeButton("No") { dialogue, _ ->
+                            dialogue.dismiss()
+                        }
+                        .create()
+                        .show()
                 }
+                askForPrintCustomerSlip(printer, result)
+
             }
         }
     }
@@ -138,5 +170,24 @@ class SalesFragment : Fragment() {
     override fun onDestroy() {
         super.onDestroy()
         sharedPreferences.unregisterOnSharedPreferenceChangeListener(observer)
+    }
+
+    private fun askForPrintCustomerSlip(
+        printer: SlipPrinterUtility,
+        payload: PaymentResult
+    ) {
+        AlertDialog
+            .Builder(requireActivity())
+            .setTitle("Print Customer Copy")
+            .setMessage("Do you want to print a copy for the customer?")
+            .setPositiveButton("Yes") { _, _ ->
+                printer.printCustomerReceipt(payload, false, SlipPrinterUtility.SlipFlag.RECIPIENT_INFO)
+                printer.free()
+            }
+            .setNegativeButton("No") { dialogue, _ ->
+                dialogue.dismiss()
+            }
+            .create()
+            .show()
     }
 }

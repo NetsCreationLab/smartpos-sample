@@ -6,8 +6,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.smartpossample.persistence.TransactionDatabase
-import com.example.smartpossample.persistence.entity.RefundResultEntity
 import eu.nets.lab.smartpos.sdk.payload.RefundResult
+import eu.nets.lab.smartpos.sdk.room.entity.RefundDataEntity
+import eu.nets.lab.smartpos.sdk.room.entity.RefundResultEntity
 import kotlinx.coroutines.launch
 
 class RefundsViewModel(application: Application) : AndroidViewModel(application) {
@@ -25,6 +26,7 @@ class RefundsViewModel(application: Application) : AndroidViewModel(application)
 
     fun persistResult(result: RefundResult) {
         viewModelScope.launch {
+            database.refundDataDao.insert(RefundDataEntity(result.data))
             database.refundResultDao.insert(RefundResultEntity(result))
         }
     }

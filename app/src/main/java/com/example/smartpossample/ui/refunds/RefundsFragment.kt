@@ -20,6 +20,7 @@ import eu.nets.lab.smartpos.sdk.client.RefundManager
 import eu.nets.lab.smartpos.sdk.payload.*
 import eu.nets.lab.smartpos.sdk.utility.printer.ErrorSlipPrinter
 import eu.nets.lab.smartpos.sdk.utility.printer.SlipPrinter
+import eu.nets.lab.smartpos.sdk.utility.printer.SlipPrinterUtility
 import java.util.*
 
 class RefundsFragment : Fragment() {
@@ -43,19 +44,14 @@ class RefundsFragment : Fragment() {
     private val data: RefundData
         get() = data()
 
-    private fun data(): RefundData {
-            val amount = (binding.amount.text.toString().toLongOrNull() ?: 1000)
-            val vat = (binding.vat.text.toString().toLongOrNull() ?: 250)
-            return refundData {
-                this.uuid = UUID.randomUUID()
-                this.totalAmount = amount + vat
-                this.currency = cur
-                this.method = chosenMethod
-                // Some payment methods require split VAT and amount for refunds too
-                this.aux put "vatPaid" value vat
-                this.aux put "amountPaid" value amount
-            }
-        }
+    private fun data(): RefundData = refundData {
+        this.uuid = UUID.randomUUID()
+        this.amount = binding.amount.text.toString().toLongOrNull() ?: 1000
+        this.vat = binding.vat.text.toString().toLongOrNull() ?: 250
+        this.currency = cur
+        this.method = chosenMethod
+        this.aux put "key" value "This is a test value"
+    }
     // endregion
 
     // This property is only valid between onCreateView and
@@ -78,64 +74,69 @@ class RefundsFragment : Fragment() {
                 refundsViewModel.persistResult(result)
 
                 // Print receipt slips
-                SlipPrinter.getInstance(result, requireContext(), false)?.let { printer ->
-                    // This is changed slightly compared to the tutorial
-                    // We print both slips, but we put one behind an alert dialogue, so the
-                    // cashier has time to rip off the first one
-                    printer.printMerchantRefundSlip(true)
-                    // Printer.free() will "print" some empty receipt to allow tearing off without
-                    // pulling first
-                    printer.free()
-                    // Only show dialogue if this is not an ErrorSlipPrinter
-                    if (printer !is ErrorSlipPrinter) {
-                        AlertDialog
-                            .Builder(requireActivity())
-                            .setTitle("Print Customer Copy")
-                            .setMessage("Do you want to print a copy for the customer?")
-                            .setPositiveButton("Yes") { _, _ ->
-                                printer.printCustomerRefundSlip()
-                                printer.free()
-                            }
-                            .setNegativeButton("No") { dialogue, _ ->
-                                dialogue.dismiss()
-                            }
-                            .create()
-                            .show()
+                val printer = SlipPrinterUtility(requireContext())
+                printer.printMerchantReceipt(
+                    result,
+                    false,
+                    SlipPrinterUtility.SlipFlag.REQUIRE_SIGNATURE_IF_AVAILABLE
+                )
+                // Printer.free() will "print" some empty receipt to allow tearing off without
+                // pulling first
+                printer.free()
+                // Only show dialogue if this is not an ErrorSlipPrinter
+                AlertDialog
+                    .Builder(requireActivity())
+                    .setTitle("Print Customer Copy")
+                    .setMessage("Do you want to print a copy for the customer?")
+                    .setPositiveButton("Yes") { _, _ ->
+                        printer.printCustomerReceipt(
+                            result,
+                            false,
+                            SlipPrinterUtility.SlipFlag.REQUIRE_SIGNATURE_IF_AVAILABLE
+                        )
+                        printer.free()
                     }
-                }
+                    .setNegativeButton("No") { dialogue, _ ->
+                        dialogue.dismiss()
+                    }
+                    .create()
+                    .show()
             }
-            this.legacyRefundManager = client.legacyRefundManager(this::startActivityForResult).register { result ->
-                // Handle result from Nets client
-                refundsViewModel.setText(result.status.toString())
-                refundsViewModel.persistResult(result)
+            this.legacyRefundManager =
+                client.legacyRefundManager(this::startActivityForResult).register { result ->
+                    // Handle result from Nets client
+                    refundsViewModel.setText(result.status.toString())
+                    refundsViewModel.persistResult(result)
 
-                // Print receipt slips
-                SlipPrinter.getInstance(result, requireContext(), false)?.let { printer ->
-                    // This is changed slightly compared to the tutorial
-                    // We print both slips, but we put one behind an alert dialogue, so the
-                    // cashier has time to rip off the first one
-                    printer.printMerchantRefundSlip(true)
+                    // Print receipt slips
+                    val printer = SlipPrinterUtility(requireContext())
+                    printer.printMerchantReceipt(
+                        result,
+                        false,
+                        SlipPrinterUtility.SlipFlag.REQUIRE_SIGNATURE_IF_AVAILABLE
+                    )
                     // Printer.free() will "print" some empty receipt to allow tearing off without
                     // pulling first
                     printer.free()
                     // Only show dialogue if this is not an ErrorSlipPrinter
-                    if (printer !is ErrorSlipPrinter) {
-                        AlertDialog
-                            .Builder(requireActivity())
-                            .setTitle("Print Customer Copy")
-                            .setMessage("Do you want to print a copy for the customer?")
-                            .setPositiveButton("Yes") { _, _ ->
-                                printer.printCustomerRefundSlip()
-                                printer.free()
-                            }
-                            .setNegativeButton("No") { dialogue, _ ->
-                                dialogue.dismiss()
-                            }
-                            .create()
-                            .show()
-                    }
+                    AlertDialog
+                        .Builder(requireActivity())
+                        .setTitle("Print Customer Copy")
+                        .setMessage("Do you want to print a copy for the customer?")
+                        .setPositiveButton("Yes") { _, _ ->
+                            printer.printCustomerReceipt(
+                                result,
+                                false,
+                                SlipPrinterUtility.SlipFlag.REQUIRE_SIGNATURE_IF_AVAILABLE
+                            )
+                            printer.free()
+                        }
+                        .setNegativeButton("No") { dialogue, _ ->
+                            dialogue.dismiss()
+                        }
+                        .create()
+                        .show()
                 }
-            }
         }
     }
 
@@ -160,20 +161,22 @@ class RefundsFragment : Fragment() {
                 ).apply { setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
 
                 binding.method.adapter = methodsAdapter
-                binding.method.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                    override fun onItemSelected(
-                        parent: AdapterView<*>,
-                        view: View?,
-                        position: Int,
-                        id: Long
-                    ) {
-                        chosenMethod = TargetMethod.valueOf(parent.getItemAtPosition(position).toString())
-                    }
+                binding.method.onItemSelectedListener =
+                    object : AdapterView.OnItemSelectedListener {
+                        override fun onItemSelected(
+                            parent: AdapterView<*>,
+                            view: View?,
+                            position: Int,
+                            id: Long
+                        ) {
+                            chosenMethod =
+                                TargetMethod.valueOf(parent.getItemAtPosition(position).toString())
+                        }
 
-                    override fun onNothingSelected(parent: AdapterView<*>?) {
-                        chosenMethod = TargetMethod.CARD
+                        override fun onNothingSelected(parent: AdapterView<*>?) {
+                            chosenMethod = TargetMethod.CARD
+                        }
                     }
-                }
                 binding.method.setSelection(methodsAdapter.getPosition(TargetMethod.CARD.toString()))
             }.process(AdminRequest.methodRequest)
         }

@@ -14,7 +14,7 @@ import com.example.smartpossample.R
 import com.example.smartpossample.databinding.FragmentOthersBinding
 import eu.nets.lab.smartpos.sdk.client.*
 import eu.nets.lab.smartpos.sdk.payload.*
-import eu.nets.lab.smartpos.sdk.utility.printer.SlipPrinter
+import eu.nets.lab.smartpos.sdk.utility.printer.SlipPrinterUtility
 import java.util.*
 
 class OthersFragment : Fragment() {
@@ -33,75 +33,63 @@ class OthersFragment : Fragment() {
     private lateinit var endOfDayManager: EndOfDayManager
     private lateinit var legacyEndOfDayManager: LegacyEndOfDayManager
     private lateinit var statusManager: StatusManager
-    private lateinit var legacyStatusManager: LegacyStatusManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         NetsClient.get().use { client ->
             this.reversalManager = client.reversalManager(this).register { result ->
                 othersViewModel.setText(result.status.toString())
-                SlipPrinter.getInstance(result, requireContext(), false)?.let { printer ->
-                    printer.printReversalSlip()
+                SlipPrinterUtility(requireContext()).let { printer ->
+                    printer.printCustomerReceipt(
+                        result,
+                        false,
+                        SlipPrinterUtility.SlipFlag.RECIPIENT_INFO
+                    )
 
                     printer.free()
                 }
             }
-            this.legacyReversalManager = client.legacyReversalManager(this::startActivityForResult).register { result ->
-                othersViewModel.setText(result.status.toString())
-                SlipPrinter.getInstance(result, requireContext(), false)?.let { printer ->
-                    printer.printReversalSlip()
+            this.legacyReversalManager =
+                client.legacyReversalManager(this::startActivityForResult).register { result ->
+                    othersViewModel.setText(result.status.toString())
+                    SlipPrinterUtility(requireContext()).let { printer ->
+                        printer.printCustomerReceipt(
+                            result,
+                            false,
+                            SlipPrinterUtility.SlipFlag.RECIPIENT_INFO
+                        )
 
-                    printer.free()
+                        printer.free()
+                    }
                 }
-            }
             this.endOfDayManager = client.endOfDayManager(this).register { result ->
                 othersViewModel.setText("End of day result ${result.eodAux}")
             }
-            this.legacyEndOfDayManager = client.legacyEndOfDayManager(this::startActivityForResult).register { result ->
-                othersViewModel.setText("End of day result ${result.eodAux}")
-            }
-            this.statusManager = client.statusManager(this).register { result ->
-                val status = when (result) {
-                    is PaymentResult -> {
-                        // This is not included in the tutorial
-                        SlipPrinter.getInstance(result, requireContext(), true)?.let { printer ->
-                            printer.printPaymentSlip()
-
-                            printer.free()
-                        }
-                        result.status.toString()
-                    }
-                    is RefundResult -> {
-                        // This is not included in the tutorial
-                        SlipPrinter.getInstance(result, requireContext(), true)?.let { printer ->
-                            printer.printMerchantRefundSlip(true)
-
-                            printer.free()
-                        }
-                        result.status.toString()
-                    }
-                    else -> "Not a result"
+            this.legacyEndOfDayManager =
+                client.legacyEndOfDayManager(this::startActivityForResult).register { result ->
+                    othersViewModel.setText("End of day result ${result.eodAux}")
                 }
-                othersViewModel.setText("Query: ${result::class.simpleName} ($status)")
-            }
-            this.legacyStatusManager = client.legacyStatusManager(this::startActivityForResult).register { result ->
+            this.statusManager = client.statusManager(this).register { result ->
+                // This is not included in the tutorial
+                if (result is ReceiptSlipPayload) {
+                    SlipPrinterUtility(requireContext()).let { printer ->
+                        printer.printCustomerReceipt(
+                            result,
+                            true,
+                            SlipPrinterUtility.SlipFlag.RECIPIENT_INFO,
+                            SlipPrinterUtility.SlipFlag.REQUIRE_SIGNATURE_IF_AVAILABLE
+                        )
+                    }
+                }
+
                 val status = when (result) {
                     is PaymentResult -> {
-                        // This is not included in the tutorial
-                        SlipPrinter.getInstance(result, requireContext(), true)?.let { printer ->
-                            printer.printPaymentSlip()
-
-                            printer.free()
-                        }
                         result.status.toString()
                     }
                     is RefundResult -> {
-                        // This is not included in the tutorial
-                        SlipPrinter.getInstance(result, requireContext(), true)?.let { printer ->
-                            printer.printMerchantRefundSlip(true)
-
-                            printer.free()
-                        }
+                        result.status.toString()
+                    }
+                    is ReversalResult -> {
                         result.status.toString()
                     }
                     else -> "Not a result"
@@ -122,7 +110,7 @@ class OthersFragment : Fragment() {
 
         // Set up payload from newest stored transaction
         // region reversal-payload
-        othersViewModel.newest.observe(viewLifecycleOwner) {
+        othersViewModel.newest().observe(viewLifecycleOwner) {
             payload = when (it) {
                 is PaymentResult -> {
                     binding.type.text = "Payment"
@@ -133,7 +121,7 @@ class OthersFragment : Fragment() {
                 }
                 is RefundResult -> {
                     binding.type.text = "Refund"
-                    binding.totalAmount.text = it.data.totalAmount.toString()
+                    binding.totalAmount.text = (it.data.amount + it.data.vat).toString()
                     binding.currency.text = it.data.currency
                     binding.status.text = it.status.toString()
                     it
@@ -154,7 +142,7 @@ class OthersFragment : Fragment() {
         // Set up query
         // region query
         val query = transactionStatusRequest {
-            type = TransactionStatusRequest.TransactionStatusRequestType.BOTH
+            type = TransactionStatusRequest.TransactionStatusRequestType.PAYMENT_REFUND
             info = TransactionStatusRequest.TransactionStatusRequestInfo.RESULT
             pingCardTransaction = false
             uuid = null
@@ -186,10 +174,6 @@ class OthersFragment : Fragment() {
         binding.statusNetsClient.setOnClickListener {
             statusManager.process(query)
         }
-
-        binding.statusLegacyClient.setOnClickListener {
-            legacyStatusManager.process(query)
-        }
         // endregion
 
         val textView: TextView = binding.textOthers
@@ -207,7 +191,6 @@ class OthersFragment : Fragment() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         legacyReversalManager.handleResult(requestCode, resultCode, data)
         legacyEndOfDayManager.handleResult(requestCode, resultCode, data)
-        legacyStatusManager.handleResult(requestCode, resultCode, data)
         super.onActivityResult(requestCode, resultCode, data)
     }
 
