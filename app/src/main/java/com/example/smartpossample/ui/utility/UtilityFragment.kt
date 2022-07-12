@@ -86,6 +86,29 @@ class UtilityFragment : Fragment() {
             samplePrinter.jokeyTestReceipt(true)
         }
 
+        // Fixed by Tor Niklas Strøm from Microlog AS (www.microlog.no)
+        binding.printerWordwrapCutoffellipsis.setOnClickListener { view: View -> onWordWrap(view) }
+        binding.printerWordwrapPrioritiseleft.setOnClickListener { view: View -> onWordWrap(view) }
+        binding.printerWordwrapReversegravity.setOnClickListener { view: View -> onWordWrap(view) }
+        binding.printerWordwrapSplitleftright.setOnClickListener { view: View -> onWordWrap(view) }
+        binding.printerWordwrapWrapindent.setOnClickListener { view: View -> onWordWrap(view) }
+        binding.printerWordwrapCutoff.setOnClickListener { view: View -> onWordWrap(view) }
+        binding.printerWordwrapIgnore.setOnClickListener { view: View -> onWordWrap(view) }
+
+        binding.printerStylingStrikethrough.setOnClickListener { view: View -> onStyling(view) }
+        binding.printerStylingUnderline.setOnClickListener { view: View -> onStyling(view) }
+        binding.printerStylingItalic.setOnClickListener { view: View -> onStyling(view) }
+        binding.printerStylingBold.setOnClickListener { view: View -> onStyling(view) }
+
+        binding.printerFontsizeSmall.setOnClickListener { view: View -> onSize(view) }
+        binding.printerFontsizeRegular.setOnClickListener { view: View -> onSize(view) }
+        binding.printerFontsizeLarge.setOnClickListener { view: View -> onSize(view) }
+        binding.printerFontsizeHuge.setOnClickListener { view: View -> onSize(view) }
+
+        binding.printerFontSansserif.setOnClickListener { view: View -> onFont(view) }
+        binding.printerFontMonospace.setOnClickListener { view: View -> onFont(view) }
+        binding.printerFontSerif.setOnClickListener { view: View -> onFont(view) }
+
         return root
     }
 

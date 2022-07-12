@@ -2,7 +2,7 @@ package com.example.smartpossample.printer
 
 import android.content.Context
 import com.example.smartpossample.R
-import com.google.zxing2.BarcodeFormat
+import com.google.zxing.BarcodeFormat
 import eu.nets.lab.smartpos.sdk.Log
 import eu.nets.lab.smartpos.sdk.utility.printer.*
 import eu.nets.lab.smartpos.sdk.utility.printer.Printer.BOLD
